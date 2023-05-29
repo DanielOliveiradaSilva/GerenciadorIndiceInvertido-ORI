@@ -1,0 +1,219 @@
+gerenciando.ListaParaDesconsiderar(arquivo4);
+        // Imprimindo a String resultante
+        System.out.println(gerenciando.palavrasDesconsideradas);
+        
+        List<String> a = filtrarPalavras(arquivo1, gerenciando.palavrasDesconsideradas);
+        List<String> b = filtrarPalavras(arquivo2, gerenciando.palavrasDesconsideradas);
+        List<String> c = filtrarPalavras(arquivo3, gerenciando.palavrasDesconsideradas);
+        
+        System.out.println("Lista A");
+        gerenciando.imprimirLista(a);
+        System.out.println("Lista B");
+        gerenciando.imprimirLista(b);
+        System.out.println("Lista C");
+        gerenciando.imprimirLista(c);
+        
+        //Combinar todas as palavras
+        //remove todas as palvras repetidas usando o Set<String>
+        Set<String> palavrasSet = new HashSet<>();
+       
+        palavrasSet.addAll(a);
+        palavrasSet.addAll(b);
+        palavrasSet.addAll(c);
+        
+        //Converte o Set de volta para uma lista (opcional) 
+        List<String> todasAsPalavras = new ArrayList<>(palavrasSet);
+        //Usando a função ordenar do metodo ArrayList
+        Collections.sort(todasAsPalavras);
+        
+        // Exibe todas as palavras
+        System.out.println("Todas as palavras");
+        gerenciando.imprimirLista(todasAsPalavras);
+        
+        
+        //Quero pegar todas as palavras e verificar a
+        //quantidade em que cada um arquivo,
+        //numera os arquivo como 1 2 e 3 e caso ache uma palavra 
+        //em um dos arquivos, mostrar a palavra, o arquivo e quantidade encontrada para cada arquivo
+        // Palavra: 1, 3
+        ArrayList<String> informacoes = gerenciando.verificarQuantidadePalavras(todasAsPalavras, arquivo1, arquivo2, arquivo3);
+        
+        // Exibindo as informações
+        gerenciando.imprimirLista(informacoes);
+        
+        //Escrever as informações em um arquivo indice.txt
+        gerenciando.gerarArquivo(informacoes, "index.txt"); //Arquivo Gerado
+        
+        //gerenciar
+        
+    }
+    
+    
+    
+       public ArrayList<String> verificarQuantidadePalavras(List<String> palavras, String arquivo1, String arquivo2, String arquivo3) {
+        Map<String, Map<Integer, Integer>> informacoesPalavras = new HashMap<>();
+
+        // Inicializa as estruturas de dados para armazenar as informações
+        for (String palavra : palavras) {
+            informacoesPalavras.put(palavra, new HashMap<>());
+            informacoesPalavras.get(palavra).put(1, 0);
+            informacoesPalavras.get(palavra).put(2, 0);
+            informacoesPalavras.get(palavra).put(3, 0);
+        }
+
+        // Verificação da quantidade de palavras nos arquivos
+        verificarQuantidadePalavrasNoArquivo(arquivo1, informacoesPalavras, 1);
+        verificarQuantidadePalavrasNoArquivo(arquivo2, informacoesPalavras, 2);
+        verificarQuantidadePalavrasNoArquivo(arquivo3, informacoesPalavras, 3);
+
+        // Construção do ArrayList com as informações
+        ArrayList<String> informacoes = new ArrayList<>();
+        for (String palavra : palavras) {
+            StringBuilder informacao = new StringBuilder();
+            informacao.append(palavra).append(": ");
+            Map<Integer, Integer> quantidadePorArquivo = informacoesPalavras.get(palavra);
+            List<String> informacoesPorArquivo = new ArrayList<>();
+
+            for (int arquivo = 1; arquivo <= 3; arquivo++) {
+                
+                int quantidade = quantidadePorArquivo.get(arquivo);
+                
+                if (quantidade > 0) {
+                    informacoesPorArquivo.add(arquivo + "," + quantidade);
+                }
+            }
+
+            informacao.append(String.join(" ", informacoesPorArquivo));
+            informacoes.add(informacao.toString());
+        }
+
+        return informacoes;
+    }
+
+    private void verificarQuantidadePalavrasNoArquivo(String arquivo, Map<String, Map<Integer, Integer>> informacoesPalavras, int numeroArquivo) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(arquivo))) {
+            String linha;
+
+            while ((linha = reader.readLine()) != null) {
+                String[] palavras = linha.split(" ");
+
+                for (String palavra : palavras) {
+                    palavra = palavra.trim().toLowerCase().replaceAll("[.,;!]", "");
+
+                    if (!palavrasDesconsideradas.contains(palavra) && informacoesPalavras.containsKey(palavra)) {
+                        Map<Integer, Integer> quantidadePorArquivo = informacoesPalavras.get(palavra);
+                        int quantidade = quantidadePorArquivo.get(numeroArquivo);
+                        quantidadePorArquivo.put(numeroArquivo, quantidade + 1);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public void gerarArquivo(ArrayList<String> informacoes, String nomeArquivo) {
+        String diretorioRaiz = System.getProperty("user.dir");
+        String caminhoCompleto = diretorioRaiz + "/src/gerenciadorindice/" + nomeArquivo;
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(caminhoCompleto))) {
+            for (String informacao : informacoes) {
+                writer.write(informacao);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public void pesquisarPalavras(String palavra1, String palavra2) {
+        List<String> arquivosPalavra1 = new ArrayList<>();
+        List<String> arquivosPalavra2 = new ArrayList<>();
+
+        for (int i = 1; i <= 3; i++) {
+            String nomeArquivo = "arquivo" + i + ".txt";
+
+            if (contemPalavra(palavra1, nomeArquivo)) {
+                arquivosPalavra1.add(nomeArquivo);
+            }
+
+            if (contemPalavra(palavra2, nomeArquivo)) {
+                arquivosPalavra2.add(nomeArquivo);
+            }
+        }
+
+        System.out.println("Palavra 1: " + palavra1);
+        for (String arquivo : arquivosPalavra1) {
+            System.out.println(arquivo);
+        }
+
+        System.out.println("Palavra 2: " + palavra2);
+        for (String arquivo : arquivosPalavra2) {
+            System.out.println(arquivo);
+        }
+    }
+
+    private boolean contemPalavra(String palavra, String nomeArquivo) {
+        try (Scanner scanner = new Scanner(new File(nomeArquivo))) {
+            while (scanner.hasNext()) {
+                String palavraArquivo = scanner.next().toLowerCase().replaceAll("[.,;!?]", "");
+                if (palavraArquivo.equals(palavra.toLowerCase())) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+  public void ListaParaDesconsiderar(String arquivo4){
+        try {
+            //Lendo o arquivo com as palavras desconsideradas
+            Scanner scannerArquivo = new Scanner(new File(arquivo4));
+            String palavra;
+            
+            //Enquanto houver palavras disponíveis
+            while(scannerArquivo.hasNext()){
+                palavra = scannerArquivo.next().replaceAll("[,;!\\.\\?]", "");
+                palavrasDesconsideradas.add(palavra.toLowerCase());//toLowerCase trona as palavras menusculas
+            }
+            
+            
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(GerenciadorIndice.class.getName()).log(Level.SEVERE, null, ex);
+        }
+           //Não precisa de retorno pois teemos uma variavel global
+           System.out.println("Okay");
+    }
+    
+   public static List<String> filtrarPalavras(String arquivo, Set<String> palavrasDesconsideradas) {
+    List<String> palavrasFiltradas = new ArrayList<>();//Array list para pegar as palavras repetidas
+
+    try (BufferedReader reader = new BufferedReader(new FileReader(arquivo))) {
+        String linha;
+
+        while ((linha = reader.readLine()) != null) {
+            String[] palavras = linha.split(" ");
+
+            for (String palavra : palavras) {
+                palavra = palavra.trim().toLowerCase().replaceAll("[.,;!]", ""); // Remove pontuações do início e do final da palavra
+                palavra = palavra.replaceAll("[^a-zA-Z0-9]", ""); // Remove pontuações internas na palavra
+
+                if (!palavrasDesconsideradas.contains(palavra)) {
+                    palavrasFiltradas.add(palavra);
+                }
+            }
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+
+        return palavrasFiltradas;
+    }
+    
+   public void imprimirLista(List<String> lista) {
+        for (String elemento : lista) {
+            System.out.println(elemento);
+        }
+    }
+   
+}
