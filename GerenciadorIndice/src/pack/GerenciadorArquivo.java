@@ -82,46 +82,61 @@ public class GerenciadorArquivo {
         List<String> Dicionario = new ArrayList<>(palavrasSet);
         Collections.sort(Dicionario);
         
-        //Gerando indice investido
+        //Gerando indice invertido
         List<Palavra> dicionario=  buscarPalavra(a, b, c, Dicionario);
         listarResultados(dicionario);
-        
-        GerarArquivoIndex("index.txt", dicionario);
+   
+        GerarArquivoIndex( "index.txt", dicionario);
         //pegar o nome a ser buscado
        
-        Scanner scanner = new Scanner(System.in);
+        //buscar palavra no arquivo indice.txt e retornar o numero dos arquivos onde está
+        String palavraBusca = "amor";
+        String indiceArquivo = "C:\\Users\\danie\\Desktop\\GerenciadorIndice\\src\\pack\\index.txt";
 
-        System.out.print("Digite uma palavra: ");
-        String palavra = scanner.nextLine();
+        List<Integer> numerosArquivos = obterNumerosArquivos(palavraBusca, indiceArquivo);
+        gerenciando.imprimirConsulta(numerosArquivos);
         
-        //Buscar dados da list de objetos
-        Palavra palavraEncontrada = buscarPalavraPorNome(dicionario, palavra);
-        //imprimir caminhos
-        gerenciando.imprimirCaminhos(palavraEncontrada);
+        
        
-    }    
-    
-    public void imprimirCaminhos(Palavra palavraEncontrada){
-        palavraEncontrada.getCaminhos();
-        if (palavraEncontrada != null) {
-            for (Iterator<String> it = palavraEncontrada.getCaminhos().iterator(); it.hasNext();) {
-                String arquivo = it.next();
-                System.out.println(arquivo);
+       
+    }
+    public void imprimirConsulta(List<Integer> numerosArquivos){
+        int tamanho = numerosArquivos.size();
+        System.out.println(tamanho);
+        for(int arquivo: numerosArquivos){
+            if(arquivo == 1){
+                System.out.println("a.txt");
             }
+            if(arquivo == 2){
+                System.out.println("b.txt");
+            }
+            if(arquivo == 3){
+                System.out.println("c.txt");
+            }
+        }
+    }
+    public static List<Integer> obterNumerosArquivos(String palavra, String indiceArquivo) {
+        List<Integer> numerosArquivos = new ArrayList<>();
 
-        } else {
-            System.out.println("Palavra não encontrada.");
-        }
-    }
-  
-     public static Palavra buscarPalavraPorNome(List<Palavra> resultados, String palavra) {
-        for (Palavra resultado : resultados) {
-            if (resultado.getNome().equals(palavra)) {
-                return resultado;
+        try (BufferedReader reader = new BufferedReader(new FileReader(indiceArquivo))) {
+            String linha;
+            while ((linha = reader.readLine()) != null) {
+                if (linha.startsWith(palavra)) {
+                    String[] partes = linha.split(":")[1].trim().split("\\s+");
+                    for (String parte : partes) {
+                        String[] numeros = parte.split(",");
+                        numerosArquivos.add(Integer.parseInt(numeros[0]));
+                    }
+                    break;
+                }
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        return null;
+
+        return numerosArquivos;
     }
+
     public static void GerarArquivoIndex(String nomeArquivo, List<Palavra> resultados) {
         String diretorioRaiz = System.getProperty("user.dir");
         String caminhoCompleto = diretorioRaiz + "/src/pack/" + nomeArquivo;
@@ -267,3 +282,4 @@ public class GerenciadorArquivo {
     }
     
 }
+

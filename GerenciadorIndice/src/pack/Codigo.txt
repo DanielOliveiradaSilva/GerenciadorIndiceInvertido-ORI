@@ -1,3 +1,8 @@
+
+
+
+
+///
 gerenciando.ListaParaDesconsiderar(arquivo4);
         // Imprimindo a String resultante
         System.out.println(gerenciando.palavrasDesconsideradas);
