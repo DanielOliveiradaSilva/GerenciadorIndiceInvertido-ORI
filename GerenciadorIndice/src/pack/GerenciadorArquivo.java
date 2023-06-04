@@ -116,8 +116,8 @@ public class GerenciadorArquivo {
         List<Palavra> palavras = lerArquivoIndice("indice.txt");
          
         //buscando os arquivos onde as palavras se encontram;
+        String arquivoNovo = diretorioRaiz + "/src/pack/" +  "resposta.txt";
         if(separador.equals(",")){
-            String arquivoNovo = diretorioRaiz + "/src/pack/" +  "resposta.txt";
             try {
                 buscarCaminhosComuns(palavras, nome1, nome2, arquivoNovo);
             } catch (IOException ex) {
@@ -125,10 +125,48 @@ public class GerenciadorArquivo {
             }
         
         }else{
-        //aqui vai o ; o ||para gerar o arquivo.
-        
+            try {
+                buscarCaminhos(palavras, nome1, nome2, arquivoNovo);
+            } catch (IOException ex) {
+                Logger.getLogger(GerenciadorArquivo.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
+    private static void buscarCaminhos(List<Palavra> palavras, String nome1, String nome2, String arquivoNovo) throws IOException {
+        Set<String> caminhosEncontrados = new HashSet<>();
+
+        // Encontrar os caminhos da primeira palavra
+        for (Palavra palavra : palavras) {
+            if (palavra.getNome().equals(nome1)) {
+                caminhosEncontrados.addAll(palavra.getCaminhos());
+                break;
+            }
+        }
+
+        // Encontrar os caminhos da segunda palavra
+        for (Palavra palavra : palavras) {
+            if (palavra.getNome().equals(nome2)) {
+                caminhosEncontrados.addAll(palavra.getCaminhos());
+                break;
+            }
+        }
+
+        BufferedWriter writer = new BufferedWriter(new FileWriter(arquivoNovo));
+
+        writer.write(caminhosEncontrados.size() + "\n");
+        for (String caminho : caminhosEncontrados) {
+            if (caminho.equals("1")) {
+                writer.write("a.txt\n");
+            } else if (caminho.equals("2")) {
+                writer.write("b.txt\n");
+            } else if (caminho.equals("3")) {
+                writer.write("c.txt\n");
+            }
+        }
+        writer.close();
+    }
+
+    
      private static void buscarCaminhosComuns(List<Palavra> palavras, String nome1, String nome2, String arquivoNovo) throws IOException {
         List<String> caminhosPalavra1 = null;
         List<String> caminhosPalavra2 = null;
@@ -172,6 +210,7 @@ public class GerenciadorArquivo {
 
         writer.close();
     }
+     
      public static List<Palavra> lerArquivoIndice(String nomeArquivo) {
         List<Palavra> palavras = new ArrayList<>();
         String diretorioRaiz = System.getProperty("user.dir");
