@@ -21,16 +21,18 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import static pack.GerenciadorArquivo.buscarPalavra;
 
 
 public class GerenciadorArquivo {
     //Palavras desconsideradas
     Set<String> palavrasDesconsideradas = new HashSet<>(Arrays.asList(",", ".", "!", "?", ""));
-    public List<String> lerArquivoConsulta(String arquivoConsulta) {
+    public List<String> lerArquivoConjunto(String arquivoConjunto) {
         List<String> nomesArquivos = new ArrayList<>();
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(arquivoConsulta))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(arquivoConjunto))) {
             String linha;
 
             while ((linha = reader.readLine()) != null) {
@@ -47,9 +49,9 @@ public class GerenciadorArquivo {
         
         GerenciadorArquivo gerenciando = new GerenciadorArquivo();
         String diretorioRaiz = System.getProperty("user.dir");
-        String arquivoConsulta = diretorioRaiz + "/src/pack/" + "consulta.txt";
+        String arquivoConjunto = diretorioRaiz + "/src/pack/" + "conjunto.txt";
         
-        List<String> nomesArquivos = gerenciando.lerArquivoConsulta(arquivoConsulta);
+        List<String> nomesArquivos = gerenciando.lerArquivoConjunto(arquivoConjunto);
         
         //Camimnhos do arquivos de dados raiz
         String arquivo1 = diretorioRaiz + "/src/pack/" + nomesArquivos.get(0);
@@ -85,59 +87,81 @@ public class GerenciadorArquivo {
         //Gerando indice invertido
         List<Palavra> dicionario=  buscarPalavra(a, b, c, Dicionario);
         listarResultados(dicionario);
-   
-        GerarArquivoIndex( "index.txt", dicionario);
-        //pegar o nome a ser buscado
+        
        
-        //buscar palavra no arquivo indice.txt e retornar o numero dos arquivos onde está
-        String palavraBusca = "amor";
-        String indiceArquivo = "C:\\Users\\danie\\Desktop\\GerenciadorIndice\\src\\pack\\index.txt";
+        gerarArquivoIndice( "indice.txt", dicionario);
+      
+        String consulta = diretorioRaiz + "/src/pack/" + "consulta.txt";
+        
+        List<String> consultas = lerArquivo(consulta);
+        String nomes = consultas.get(0);
 
-        List<Integer> numerosArquivos = obterNumerosArquivos(palavraBusca, indiceArquivo);
-        gerenciando.imprimirConsulta(numerosArquivos);
-        
-        
-       
-       
-    }
-    public void imprimirConsulta(List<Integer> numerosArquivos){
-        int tamanho = numerosArquivos.size();
-        System.out.println(tamanho);
-        for(int arquivo: numerosArquivos){
-            if(arquivo == 1){
-                System.out.println("a.txt");
-            }
-            if(arquivo == 2){
-                System.out.println("b.txt");
-            }
-            if(arquivo == 3){
-                System.out.println("c.txt");
-            }
+        Pattern pattern = Pattern.compile("[,;]");
+        Matcher matcher = pattern.matcher(nomes);
+
+        String separador = "";
+        if (matcher.find()) {
+            separador = matcher.group();
         }
-    }
-    public static List<Integer> obterNumerosArquivos(String palavra, String indiceArquivo) {
-        List<Integer> numerosArquivos = new ArrayList<>();
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(indiceArquivo))) {
-            String linha;
-            while ((linha = reader.readLine()) != null) {
-                if (linha.startsWith(palavra)) {
-                    String[] partes = linha.split(":")[1].trim().split("\\s+");
-                    for (String parte : partes) {
-                        String[] numeros = parte.split(",");
-                        numerosArquivos.add(Integer.parseInt(numeros[0]));
-                    }
-                    break;
+        String[] partes = nomes.split("[,;]");
+        String nome1 = partes[0].trim();
+        String nome2 = partes[1].trim();
+
+        System.out.println("Nome 1: " + nome1);
+        System.out.println("Nome 2: " + nome2);
+        System.out.println("seperador: " + separador);
+        
+        
+        List<Palavra> palavras = lerArquivoIndice("indice.txt");
+         // Agora você pode usar a lista "palavras" contendo os objetos Palavra
+        // para acessar os dados conforme necessário.
+        for (Palavra palavra : palavras) {
+            System.out.println("Nome: " + palavra.getNome());
+            System.out.println("Caminhos: " + palavra.getCaminhos());
+            System.out.println("Repetidas: " + palavra.getRepetidas());
+            System.out.println();
+        }
+        if(separador.equals(",")){
+            
+        }else{
+            System.out.println("Entrou em ;");
+        }
+        
+    }
+     public static List<Palavra> lerArquivoIndice(String nomeArquivo) {
+        List<Palavra> palavras = new ArrayList<>();
+        String diretorioRaiz = System.getProperty("user.dir");
+        String caminhoCompleto = diretorioRaiz + "/src/pack/" + nomeArquivo;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(caminhoCompleto))) {
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                String[] partes = line.split(":");
+                String nome = partes[0];
+                String[] ocorrencias = partes[1].trim().split(" ");
+                List<String> caminhos = new ArrayList<>();
+                List<Integer> repetidas = new ArrayList<>();
+
+                for (String ocorrencia : ocorrencias) {
+                    String[] dados = ocorrencia.trim().split(",");
+                    caminhos.add(dados[0]);
+                    repetidas.add(Integer.parseInt(dados[1]));
                 }
+
+                Palavra palavra = new Palavra(nome,repetidas, caminhos);
+                palavras.add(palavra);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return numerosArquivos;
+        return palavras;
     }
 
-    public static void GerarArquivoIndex(String nomeArquivo, List<Palavra> resultados) {
+    
+    public static void gerarArquivoIndice(String nomeArquivo, List<Palavra> resultados) {
         String diretorioRaiz = System.getProperty("user.dir");
         String caminhoCompleto = diretorioRaiz + "/src/pack/" + nomeArquivo;
         
@@ -165,6 +189,101 @@ public class GerenciadorArquivo {
             e.printStackTrace();
         }
     }
+   
+      // Função para ler o conteúdo de um arquivo
+    public static List<String> lerArquivo(String fileName) {
+        List<String> lines = new ArrayList<>();
+        try {
+            File file = new File(fileName);
+            Scanner scanner = new Scanner(file);
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                lines.add(line);
+            }
+            scanner.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("Arquivo não encontrado: " + e.getMessage());
+        }
+        return lines;
+    }
+    
+    // Função para gerar o índice invertido
+    private static Map<String, List<String>> gerarIndice() throws IOException {
+        Map<String, List<String>> indice = new HashMap<>();
+        BufferedReader leitor = new BufferedReader(new FileReader("base.txt"));
+        String linha;
+        int documentoId = 0;
+        while ((linha = leitor.readLine()) != null) {
+            documentoId++;
+            String[] palavras = linha.split(",");
+            for (String palavra : palavras) {
+                palavra = palavra.trim();
+                List<String> documentos = indice.getOrDefault(palavra, new ArrayList<>());
+                documentos.add("a" + documentoId + ".txt"); // Supõe-se que o arquivo de base tenha o formato a1.txt, a2.txt, ...
+                indice.put(palavra, documentos);
+            }
+        }
+        leitor.close();
+        return indice;
+    }
+    // Função para processar a consulta
+    private static List<String> processarConsulta(Map<String, List<String>> indice, List<String> consulta) {
+        List<String> resultado = new ArrayList<>();
+        for (String termo : consulta) {
+            String[] termos = termo.split(",");
+            List<String> documentos = new ArrayList<>();
+            boolean operadorAnd = true;
+
+            for (String t : termos) {
+                t = t.trim();
+                if (t.equals(";")) {
+                    operadorAnd = false;
+                } else {
+                    List<String> docs = indice.getOrDefault(t, new ArrayList<>());
+                    if (operadorAnd) {
+                        if (documentos.isEmpty()) {
+                            documentos.addAll(docs);
+                        } else {
+                            documentos.retainAll(docs);
+                        }
+                    } else {
+                        documentos.addAll(docs);
+                    }
+                }
+            }
+            resultado.addAll(documentos);
+        }
+        return resultado;
+    }
+      // Função para escrever a resposta no arquivo
+    private static void escreverResposta(String nomeArquivo, List<String> resultado) throws IOException {
+        BufferedWriter escritor = new BufferedWriter(new FileWriter(nomeArquivo));
+        escritor.write(Integer.toString(resultado.size()));
+        escritor.newLine();
+        for (String documento : resultado) {
+            escritor.write(documento);
+            escritor.newLine();
+        }
+        escritor.close();
+    }
+   
+    public void imprimirConjunto(List<Integer> numerosArquivos){
+        int tamanho = numerosArquivos.size();
+        System.out.println(tamanho);
+        for(int arquivo: numerosArquivos){
+            if(arquivo == 1){
+                System.out.println("a.txt");
+            }
+            if(arquivo == 2){
+                System.out.println("b.txt");
+            }
+            if(arquivo == 3){
+                System.out.println("c.txt");
+            }
+        }
+    }
+    //procurar as palavras nos arquivos pares
+    
     
     public static void listarResultados(List<Palavra> resultados) {
         
@@ -252,7 +371,7 @@ public class GerenciadorArquivo {
         } catch (FileNotFoundException ex) {
             Logger.getLogger(GerenciadorArquivo.class.getName()).log(Level.SEVERE, null, ex);
         }
-           //Não precisa de retorno pois teemos uma variavel global
+           //Não precisa de retorno pois temos uma variavel global
            
     }
 
@@ -281,5 +400,11 @@ public class GerenciadorArquivo {
         return palavrasFiltradas;
     }
     
-}
+  
+ }
+
+   
+
+    
+
 

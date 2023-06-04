@@ -47,7 +47,7 @@ gerenciando.ListaParaDesconsiderar(arquivo4);
         gerenciando.imprimirLista(informacoes);
         
         //Escrever as informações em um arquivo indice.txt
-        gerenciando.gerarArquivo(informacoes, "index.txt"); //Arquivo Gerado
+        gerenciando.gerarArquivo(informacoes, "indice.txt"); //Arquivo Gerado
         
         //gerenciar
         
