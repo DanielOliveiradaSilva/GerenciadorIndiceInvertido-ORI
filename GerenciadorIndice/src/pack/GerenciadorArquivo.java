@@ -114,20 +114,63 @@ public class GerenciadorArquivo {
         
         
         List<Palavra> palavras = lerArquivoIndice("indice.txt");
-         // Agora você pode usar a lista "palavras" contendo os objetos Palavra
-        // para acessar os dados conforme necessário.
-        for (Palavra palavra : palavras) {
-            System.out.println("Nome: " + palavra.getNome());
-            System.out.println("Caminhos: " + palavra.getCaminhos());
-            System.out.println("Repetidas: " + palavra.getRepetidas());
-            System.out.println();
-        }
+         
+        //buscando os arquivos onde as palavras se encontram;
         if(separador.equals(",")){
-            
-        }else{
-            System.out.println("Entrou em ;");
-        }
+            String arquivoNovo = diretorioRaiz + "/src/pack/" +  "resposta.txt";
+            try {
+                buscarCaminhosComuns(palavras, nome1, nome2, arquivoNovo);
+            } catch (IOException ex) {
+                 System.out.println("Ocorreu um erro ao gravar a saída no arquivo.");
+            }
         
+        }else{
+        //aqui vai o ; o ||para gerar o arquivo.
+        
+        }
+    }
+     private static void buscarCaminhosComuns(List<Palavra> palavras, String nome1, String nome2, String arquivoNovo) throws IOException {
+        List<String> caminhosPalavra1 = null;
+        List<String> caminhosPalavra2 = null;
+
+        // Encontrar os caminhos da primeira palavra
+        for (Palavra palavra : palavras) {
+            if (palavra.getNome().equals(nome1)) {
+                caminhosPalavra1 = palavra.getCaminhos();
+                break;
+            }
+        }
+
+        // Encontrar os caminhos da segunda palavra
+        for (Palavra palavra : palavras) {
+            if (palavra.getNome().equals(nome2)) {
+                caminhosPalavra2 = palavra.getCaminhos();
+                break;
+            }
+        }
+
+        BufferedWriter writer = new BufferedWriter(new FileWriter(arquivoNovo));
+
+        // Verificar a interseção dos caminhos
+        if (caminhosPalavra1 != null && caminhosPalavra2 != null) {
+            Set<String> arquivosComuns = new HashSet<>(caminhosPalavra1);
+            arquivosComuns.retainAll(caminhosPalavra2);
+
+            writer.write(arquivosComuns.size() + "\n");
+            for (String caminho : arquivosComuns) {
+                if (caminho.equals("1")) {
+                    writer.write("a.txt\n");
+                } else if (caminho.equals("2")) {
+                    writer.write("b.txt\n");
+                } else if (caminho.equals("3")) {
+                    writer.write("c.txt\n");
+                }
+            }
+        } else {
+            writer.write("Uma ou ambas as palavras não foram encontradas.");
+        }
+
+        writer.close();
     }
      public static List<Palavra> lerArquivoIndice(String nomeArquivo) {
         List<Palavra> palavras = new ArrayList<>();
@@ -160,7 +203,6 @@ public class GerenciadorArquivo {
         return palavras;
     }
 
-    
     public static void gerarArquivoIndice(String nomeArquivo, List<Palavra> resultados) {
         String diretorioRaiz = System.getProperty("user.dir");
         String caminhoCompleto = diretorioRaiz + "/src/pack/" + nomeArquivo;
@@ -400,8 +442,7 @@ public class GerenciadorArquivo {
         return palavrasFiltradas;
     }
     
-  
- }
+}
 
    
 
